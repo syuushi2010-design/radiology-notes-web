@@ -193,6 +193,10 @@ main { width: min(1120px, calc(100% - 44px)); margin: 0 auto; }
 .attachment-gallery { display: grid; max-width: 860px; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; margin: 0 auto 40px; }
 .attachment-gallery figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #f2f5f4; }
 .attachment-gallery img, .image-placeholder { display: grid; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; place-items: center; background: #eef3f1; color: #7a8985; }
+.inline-attachment-figure { margin: 18px 0 24px; }
+.inline-attachment-figure img, .inline-attachment-figure .image-placeholder { display: grid; width: 100%; aspect-ratio: 16 / 10; object-fit: contain; place-items: center; background: #eef3f1; color: #7a8985; border-radius: 12px; }
+.inline-attachment-figure figcaption { margin-top: 7px; color: var(--muted); font-size: 12px; }
+.inline-attachment-figure figcaption span { margin-right: 7px; color: var(--brand-dark); }
 .attachment-gallery figcaption { display: flex; align-items: center; gap: 7px; padding: 11px 13px 4px; color: var(--muted); font-size: 11px; }
 .attachment-gallery figcaption span { padding: 3px 6px; border-radius: 6px; background: #fff2df; color: #915124; font-size: 9px; font-weight: 800; }
 .attachment-gallery a { display: inline-flex; align-items: center; gap: 4px; margin: 5px 13px 13px; color: var(--brand); font-size: 10px; font-weight: 750; text-decoration: none; }

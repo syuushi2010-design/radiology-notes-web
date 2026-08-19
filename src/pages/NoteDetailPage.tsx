@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 import { useKnowledgeBase } from "../app/KnowledgeBaseContext";
 import { NoteCard } from "../components/NoteCard";
 import { StatusBadge } from "../components/StatusBadge";
-import type { NoteVersion, RightsStatus } from "../types";
+import type { NoteAttachment, NoteVersion, RightsStatus } from "../types";
 
 const rightsLabels: Record<RightsStatus, string> = {
   reusable: "再利用可",
@@ -48,6 +48,8 @@ export function NoteDetailPage() {
   if (!note) return <main className="main-content page-content"><p className="empty-state">ノートが見つかりません。</p></main>;
 
   const related = notes.filter((item) => item.id !== note.id && item.publicationStatus !== "archived" && hasOverlap(note.tags, item.tags)).slice(0, 2);
+  const inlineAttachmentFileNames = getInlineAttachmentFileNames(note.body);
+  const galleryAttachments = note.attachments.filter((attachment) => !inlineAttachmentFileNames.has(attachment.fileName));
 
   return (
     <main className="main-content detail-page">
@@ -70,9 +72,9 @@ export function NoteDetailPage() {
           <div className="detail-dates"><CalendarDays size={15} /><time dateTime={note.updatedAt}>{formatDate(note.updatedAt)}更新</time>{note.checkedAt && <span>・最終確認 {formatDate(note.checkedAt)}</span>}</div>
         </header>
 
-        {note.attachments.length > 0 && (
+        {galleryAttachments.length > 0 && (
           <section className="attachment-gallery" aria-label="参考画像">
-            {note.attachments.map((attachment) => (
+            {galleryAttachments.map((attachment) => (
               <figure key={attachment.id}>
                 {attachment.displayUrl ? <img src={attachment.displayUrl} alt={attachment.altText} /> : <div className="image-placeholder"><ImageIcon size={26} />画像を取得できません</div>}
                 <figcaption><span>{rightsLabels[attachment.rightsStatus]}</span>{attachment.altText}</figcaption>
@@ -82,7 +84,16 @@ export function NoteDetailPage() {
           </section>
         )}
 
-        <div className="markdown-body"><ReactMarkdown remarkPlugins={[remarkGfm]}>{note.body}</ReactMarkdown></div>
+        <div className="markdown-body"><ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+          img({ src, alt }) {
+            const attachment = getInlineAttachment(note.attachments, src);
+            if (!attachment) return <img src={src} alt={alt ?? ""} />;
+            return <figure className="inline-attachment-figure">
+              {attachment.displayUrl ? <img src={attachment.displayUrl} alt={alt || attachment.altText} /> : <div className="image-placeholder"><ImageIcon size={26} />画像を取得できません</div>}
+              <figcaption><span>{rightsLabels[attachment.rightsStatus]}</span>{attachment.altText}</figcaption>
+            </figure>;
+          },
+        }}>{note.body}</ReactMarkdown></div>
 
         <aside className="clinical-note"><strong>参照時の注意</strong><p>撮影条件や範囲は、所属施設の正式プロトコル、装置、検査目的、患者条件を優先してください。</p></aside>
 
@@ -131,6 +142,11 @@ export function NoteDetailPage() {
 }
 
 function hasOverlap(left: string[], right: string[]) { return left.some((value) => right.includes(value)); }
+function getInlineAttachmentFileNames(body: string) { return new Set([...body.matchAll(/https:\/\/attachment\.local\/([^\s)]+)/g)].map((match) => decodeURIComponent(match[1]))); }
+function getInlineAttachment(attachments: NoteAttachment[], src?: string) {
+  if (!src?.startsWith("https://attachment.local/")) return undefined;
+  return attachments.find((attachment) => attachment.fileName === decodeURIComponent(src.slice("https://attachment.local/".length)));
+}
 function formatDate(value: string) { return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value)); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 function safeExternalUrl(value?: string) { if (!value) return false; try { return ["http:", "https:"].includes(new URL(value).protocol); } catch { return false; } }
