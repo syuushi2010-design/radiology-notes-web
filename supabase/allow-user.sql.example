@@ -1,0 +1,6 @@
+-- Supabase SQL Editorで初期スキーマ適用後に実行する。
+-- メールアドレスは小文字で指定する。
+
+insert into public.app_allowed_users (email)
+values ('your-google-account@example.com')
+on conflict (email) do nothing;
