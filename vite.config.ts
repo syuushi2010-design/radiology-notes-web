@@ -11,7 +11,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: ["robots.txt", "icons/apple-touch-icon-v2.png"],
       manifest: {
         name: "放射線技師ナレッジノート",
