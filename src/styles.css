@@ -29,6 +29,12 @@ button { color: inherit; }
 
 .app-shell { min-height: 100vh; padding-bottom: 104px; }
 
+.pwa-update-notice { position: fixed; right: max(18px, calc((100vw - 1120px) / 2)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 14px; max-width: min(440px, calc(100vw - 36px)); padding: 13px; border: 1px solid #b8d6cc; border-radius: 16px; background: rgba(255,255,255,.98); box-shadow: var(--shadow); }
+.pwa-update-notice div { display: grid; gap: 3px; }
+.pwa-update-notice strong { font-size: 13px; }
+.pwa-update-notice span { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.pwa-update-notice .primary-button { flex: 0 0 auto; white-space: nowrap; }
+
 .topbar {
   position: sticky;
   top: 0;
@@ -334,6 +340,7 @@ main { width: min(1120px, calc(100% - 44px)); margin: 0 auto; }
   .notes-grid--two { grid-template-columns: 1fr; }
   .note-card { min-height: 238px; }
   .floating-action { right: 17px; bottom: calc(76px + env(safe-area-inset-bottom)); width: 50px; height: 50px; min-height: 50px; justify-content: center; padding: 0; border-radius: 50%; }
+  .pwa-update-notice { right: 15px; bottom: calc(78px + env(safe-area-inset-bottom)); left: 15px; max-width: none; }
   .floating-action span { display: none; }
   .mobile-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 9; display: grid; grid-template-columns: repeat(3, 1fr); padding: 7px 12px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255,255,255,.96); backdrop-filter: blur(18px); }
   .mobile-nav a { display: flex; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 10px; color: #74827e; text-decoration: none; font-size: 9px; font-weight: 750; }
