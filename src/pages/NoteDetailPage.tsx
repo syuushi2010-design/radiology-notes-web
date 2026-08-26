@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Edit3, ExternalLink, Heart, History, Image as ImageIcon, RotateCcw } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Copy, Edit3, ExternalLink, Heart, History, Image as ImageIcon, RotateCcw, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Link, useParams } from "react-router-dom";
@@ -23,6 +23,8 @@ export function NoteDetailPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string>();
   const [restoringId, setRestoringId] = useState<string>();
+  const [researchFocus, setResearchFocus] = useState("");
+  const [researchCopyState, setResearchCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
     if (note) markViewed(note.id);
@@ -50,6 +52,7 @@ export function NoteDetailPage() {
   const related = notes.filter((item) => item.id !== note.id && item.publicationStatus !== "archived" && hasOverlap(note.tags, item.tags)).slice(0, 2);
   const inlineAttachmentFileNames = getInlineAttachmentFileNames(note.body);
   const galleryAttachments = note.attachments.filter((attachment) => !inlineAttachmentFileNames.has(attachment.fileName));
+  const researchPrompt = buildResearchPrompt(note.title, researchFocus);
 
   return (
     <main className="main-content detail-page">
@@ -95,6 +98,19 @@ export function NoteDetailPage() {
           },
         }}>{note.body}</ReactMarkdown></div>
 
+        <section className="research-section" aria-label="詳しく調べる">
+          <details>
+            <summary><span><Search size={17} />詳しく調べる</span><small>気になった点を深掘り</small></summary>
+            <p className="research-help">ここでは調査や外部送信を自動実行しません。気になる点を入力して、Codexへ送る依頼文をコピーできます。</p>
+            <label className="research-focus"><span>気になったところ（任意）</span><input value={researchFocus} onChange={(event) => { setResearchFocus(event.target.value); setResearchCopyState("idle"); }} placeholder="例：KL-6とCT所見の関係" /></label>
+            <div className="research-prompt">
+              <p>{researchPrompt}</p>
+              <button className="secondary-button" type="button" onClick={() => void handleResearchPromptCopy()}>{researchCopyState === "copied" ? <Check size={15} /> : <Copy size={15} />}{researchCopyState === "copied" ? "コピーしました" : "依頼文をコピー"}</button>
+            </div>
+            {researchCopyState === "failed" && <p className="error-message" role="alert">コピーできませんでした。依頼文を選択してコピーしてください。</p>}
+          </details>
+        </section>
+
         <aside className="clinical-note"><strong>参照時の注意</strong><p>撮影条件や範囲は、所属施設の正式プロトコル、装置、検査目的、患者条件を優先してください。</p></aside>
 
         <section className="sources-section">
@@ -139,6 +155,16 @@ export function NoteDetailPage() {
       setRestoringId(undefined);
     }
   }
+
+  async function handleResearchPromptCopy() {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard APIを利用できません。");
+      await navigator.clipboard.writeText(researchPrompt);
+      setResearchCopyState("copied");
+    } catch {
+      setResearchCopyState("failed");
+    }
+  }
 }
 
 function hasOverlap(left: string[], right: string[]) { return left.some((value) => right.includes(value)); }
@@ -150,3 +176,7 @@ function getInlineAttachment(attachments: NoteAttachment[], src?: string) {
 function formatDate(value: string) { return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value)); }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value)); }
 function safeExternalUrl(value?: string) { if (!value) return false; try { return ["http:", "https:"].includes(new URL(value).protocol); } catch { return false; } }
+function buildResearchPrompt(title: string, focus: string) {
+  const subject = focus.trim() ? `「${focus.trim()}」を中心に` : "気になった点を中心に";
+  return `「${title}」について、${subject}、公式資料と査読論文で詳しく調べて。放射線技師の学習・参照用として、適用条件、根拠、既存ノートへの追記案を整理し、登録前に内容と出典を提示して。`;
+}
